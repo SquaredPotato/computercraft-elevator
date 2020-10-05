@@ -6,7 +6,7 @@ elDirSide = "left"
 currentLevel = 1
 direction = -1 -- -1: up, 1: down
 
-getOnTime = 5 -- seconds to get on if another floor is active
+getOnTime = 3 -- seconds to get on if another floor is active
 
 lhostname = "server"
 

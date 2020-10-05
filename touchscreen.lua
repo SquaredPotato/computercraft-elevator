@@ -4,11 +4,13 @@ require("here")    -- Who are we, sides
 ---- globals
 lhostname = levels[here].hostname
 hitboxHeight = 3
+currentLevel = here
 
 -- colors
 bgColor = colors.black
 barColor = colors.gray
 textColor = colors.blue
+currentColor = colors.green
 hitColorOne = colors.cyan
 hitColorTwo = colors.blue
 hitActive = colors.orange
@@ -89,6 +91,8 @@ function drawHitboxes()
         end
         if levels[i].active then
             color = hitActive
+        elseif i == currentLevel then
+            color = currentColor
         end
         fillBox(color, hitboxes[i].xMin,
                         hitboxes[i].xMax,
@@ -135,6 +139,7 @@ function waitForEvent()
         end
     elseif type == "redstone" then
         if redstone.getInput(contactSide) then
+            currentLevel = here
             print("its here")
             rednet.broadcast("pst"..tostring(here), protocol)
         end
@@ -147,6 +152,10 @@ function waitForEvent()
         elseif opcode == "dct" then
             print("dct")
             levels[tonumber(string.sub(b,4))].active = false
+        elseif opcode == "pst" then
+            tmp = tonumber(string.sub(b, 4))
+            print("new pst: "..tmp)
+            currentLevel = tmp
         end
     end
 end
