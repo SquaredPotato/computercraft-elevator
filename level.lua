@@ -16,19 +16,13 @@ end
 
 levels = {
     level:new{
-        hostname="Ground Floor",
-        y=71,
+        hostname="Sea Level",
+        y=72,
         id=0,
     },
     level:new{
-        hostname="Basement",
+        hostname="Floor 1",
         y=61,
         id=0
-    },
-    level:new{
-        hostname="Mines",
-        y=10,
-        id=0
-    }
-    
+    }    
 }    

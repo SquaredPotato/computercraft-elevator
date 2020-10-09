@@ -1,7 +1,7 @@
 require("disk/level") -- Level class, protocol string
 
-elActSide = "back"
-elDirSide = "left"
+elActSide = "right"
+elDirSide = "back"
 
 currentLevel = 1
 direction = -1 -- -1: up, 1: down

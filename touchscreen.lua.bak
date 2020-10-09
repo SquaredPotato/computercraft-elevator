@@ -1,5 +1,5 @@
-require("disk/level") -- Levels, protocol string
-require("here")    -- Who are we, sides
+require("level") -- Levels, protocol string
+require("../here")    -- Who are we, sides
 
 ---- globals
 lhostname = levels[here].hostname
@@ -21,22 +21,10 @@ rednet.open(modemSide)
 rednet.host(protocol, lhostname)
 
 -- monitor
--- http://www.computercraft.info/forums2/index.php?/topic/21363-multiple-monitors-one-computer/
-monitors = {peripheral.find("monitor")}  -- "find" needs CC 1.6 or later
+monitor = peripheral.wrap(monitorSide)
+width, height = monitor.getSize()
 
-local multiTerm = {}
-for funcName,_ in pairs(monitors[1]) do
-    multiTerm[funcName] = function(...)
-        for i=1,#monitors-1 do monitors[i][funcName](unpack(arg)) end
-        return monitors[#monitors][funcName](unpack(arg))
-    end
-end
-
-term.redirect(multiTerm)
-term.clear()
-term.setCursorPos(1,1)
-
-width, height = term.getSize()
+print("Monitor size (x,y): "..tostring(width)..","..tostring(height))
 
 -- hitbox
 hitbox = {
@@ -67,21 +55,21 @@ hitboxes = {}
 
 -- utilities
 function clearScreen()
-    term.setBackgroundColor(bgColor)
+    monitor.setBackgroundColor(bgColor)
     for i = 1, height do
-        term.setCursorPos(1, i)
+        monitor.setCursorPos(1, i)
         for j = 1, width do
-            term.write(" ")
+            monitor.write(" ")
         end
     end
 end
 
 function fillBox(color, xMin, xMax, yMin, yMax)
-    term.setBackgroundColor(color)
+    monitor.setBackgroundColor(color)
     for i = yMin, yMax do
-        term.setCursorPos(xMin, i)
+        monitor.setCursorPos(xMin, i)
         for j = xMin, xMax do
-             term.write(" ")
+             monitor.write(" ")
         end
     end
 end
@@ -89,8 +77,8 @@ end
 function drawBar(text)
     fillBox(barColor, 1, width, 1, 1)
     local center = math.ceil((width / 2) - (string.len(text) / 2) + 1)
-    term.setCursorPos(center, 1)
-    term.write(text)
+    monitor.setCursorPos(center, 1)
+    monitor.write(text)
 end
 
 function drawHitboxes()
@@ -113,8 +101,8 @@ function drawHitboxes()
         
         -- Background color already correct from fillBox
         local y = hitboxes[i].yMax - ((hitboxes[i].yMax - hitboxes[i].yMin) / 2)
-        term.setCursorPos(2,y)
-        term.write(hitboxes[i].name)       
+        monitor.setCursorPos(2,y)
+        monitor.write(hitboxes[i].name)       
     end
 end
 
