@@ -2,9 +2,10 @@ require("disk/level") -- Levels, protocol string
 require("here")    -- Who are we, sides
 
 ---- globals
-lhostname = levels[here].hostname
+lhostname = levels[here].name
 hitboxHeight = 3
 currentLevel = here
+contacterPositive = false -- If signal from contactor is inverted
 
 -- colors
 bgColor = colors.black
@@ -18,7 +19,6 @@ hitActive = colors.orange
 ---- setup
 -- rednet
 rednet.open(modemSide)
-rednet.host(protocol, lhostname)
 
 -- monitor
 -- http://www.computercraft.info/forums2/index.php?/topic/21363-multiple-monitors-one-computer/
@@ -126,7 +126,7 @@ function generateHitboxes()
             xMax = width,
             yMin = y,
             yMax = y + hitboxHeight - 1,
-            name = levels[i].hostname
+            name = levels[i].name
         }
         y = y + hitboxHeight
     end
@@ -135,8 +135,13 @@ end
 -- Unfortunately no threads, so interrupts may be long
 function waitForEvent()
     local type, a, b, c = os.pullEvent()
- 
-    if type == "monitor_touch" then
+	
+	if type == "redstone" then
+		if redstone.getInput(contactSide) == contacterPositive then
+            rednet.broadcast("pst"..tostring(here), protocol)
+            currentLevel = here
+        end
+    elseif type == "monitor_touch" then
         for i = 1, table.getn(hitboxes) do
             if hitboxes[i]:hit(b, c) then
                 levels[i].active = not levels[i].active
@@ -149,25 +154,14 @@ function waitForEvent()
                 rednet.broadcast(opcode..tostring(i),protocol)
             end
         end
-    elseif type == "redstone" then
-        if redstone.getInput(contactSide) then
-            currentLevel = here
-            print("its here")
-            rednet.broadcast("pst"..tostring(here), protocol)
-        end
     elseif type == "rednet_message" and c == protocol then
         opcode = string.sub(b, 1, 3)
-        print(opcode)
         if opcode == "act" then
-            print("act")
             levels[tonumber(string.sub(b,4))].active = true
         elseif opcode == "dct" then
-            print("dct")
             levels[tonumber(string.sub(b,4))].active = false
         elseif opcode == "pst" then
-            tmp = tonumber(string.sub(b, 4))
-            print("new pst: "..tmp)
-            currentLevel = tmp
+            currentLevel = tonumber(string.sub(b, 4))
         end
     end
 end

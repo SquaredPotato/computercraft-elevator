@@ -8,22 +8,13 @@ direction = -1 -- -1: up, 1: down
 
 getOnTime = 3 -- seconds to get on if another floor is active
 
-lhostname = "server"
-
 rednet.open("top")
-rednet.host(protocol, lhostname)
 
 moveAllowed = true
 timer = 0
 
-function initialize ()
-    redstone.setOutput(elActSide, true)
-
-    for i = 1, table.getn(levels) do
-        levels[i].id = rednet.lookup(protocol, levels[i].hostname)
-        print("Found hostname ", levels[i].hostname, " on id ", levels[i].id)
-    end
-end
+-- Make sure elevator isn't moving during startup
+redstone.setOutput(elActSide, true)
 
 function waitForEvent()
     local type, a, b, c = os.pullEvent()
@@ -31,14 +22,14 @@ function waitForEvent()
     if type == "rednet_message" and c == protocol then
         local opcode = string.sub(b, 1, 3)
         local where = tonumber(string.sub(b,4))
-        print(opcode..":"..tostring(where))
-        if opcode == "act" then
+--        print(opcode..":"..tostring(where))
+		if opcode == "pst" then
+--            print("new pst: "..string.sub(b,4))
+            currentLevel = tonumber(string.sub(b,4))		
+        elseif opcode == "act" then
             levels[tonumber(string.sub(b,4))].active = true
         elseif opcode == "dct" then
             levels[tonumber(string.sub(b,4))].active = false
-        elseif opcode == "pst" then
-            print("new pst: "..string.sub(b,4))
-            currentLevel = tonumber(string.sub(b,4))
         else
             print(opcode)
         end
@@ -65,7 +56,7 @@ function moveOrNot(direction)
 end
 
 function setElevator(move, direction)
-    if direction < 0 then
+    if direction > 0 then
         redstone.setOutput(elDirSide, true)
     else
         redstone.setOutput(elDirSide, false)
@@ -82,12 +73,13 @@ function elevatorUpdate()
             redstone.setOutput(elActSide, true)
             moveAllowed = false
             timer = os.startTimer(getOnTime)
-        -- Checking levels in both directions
+            rednet.broadcast("dop"..tostring(i), protocol)
         elseif moveAllowed then
             moved = false
             if moveOrNot(direction) then
                 print("Moving in "..tostring(direction))
                 setElevator(true, direction)
+                rednet.broadcast("dcl"..tostring(i), protocol)
                 moved = true
             else
                 if direction < 0 then
@@ -98,6 +90,7 @@ function elevatorUpdate()
                 if moveOrNot(direction) then
                     print("Moving in "..tostring(direction))
                     setElevator(true, direction)
+                    rednet.broadcast("dcl"..tostring(i), protocol)
                     moved = true
                 end
             end
@@ -109,7 +102,6 @@ function elevatorUpdate()
 end
 
 function main()
-    initialize()
     while true do
         waitForEvent()
         elevatorUpdate()
