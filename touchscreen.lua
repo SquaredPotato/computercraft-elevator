@@ -137,10 +137,8 @@ function waitForEvent()
     local type, a, b, c = os.pullEvent()
 	
 	if type == "redstone" then
-		if redstone.getInput(contactSide) == contacterPositive then
-            rednet.broadcast("pst"..tostring(here), protocol)
-            currentLevel = here
-        end
+		rednet.broadcast("pst"..tostring(here), protocol)
+		currentLevel = here
     elseif type == "monitor_touch" then
         for i = 1, table.getn(hitboxes) do
             if hitboxes[i]:hit(b, c) then
